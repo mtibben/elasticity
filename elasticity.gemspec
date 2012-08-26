@@ -13,10 +13,11 @@ Gem::Specification.new do |s|
 
   s.add_dependency('rest-client')
   s.add_dependency('nokogiri')
-  s.add_dependency('fog', '~> 1.5')
+  s.add_dependency('right_aws', '~> 3.0')
 
   s.add_development_dependency('rake')
   s.add_development_dependency('rspec', '~> 2.11.0')
+  s.add_development_dependency('fakefs', '~> 0.4')
 
   s.files         = `git ls-files`.split("\n")
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
