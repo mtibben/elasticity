@@ -13,6 +13,7 @@ Gem::Specification.new do |s|
 
   s.add_dependency('rest-client')
   s.add_dependency('nokogiri')
+  s.add_dependency('fog', '~> 1.5')
 
   s.add_development_dependency('rake')
   s.add_development_dependency('rspec', '~> 2.11.0')
