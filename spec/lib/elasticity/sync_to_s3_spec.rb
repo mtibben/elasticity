@@ -82,6 +82,16 @@ describe Elasticity::SyncToS3 do
         s3.directories.create(:key => bucket_name)
       end
 
+      context 'when the local directory exists' do
+        before do
+          FileUtils.mkdir('GOOD_DIR')
+        end
+        it 'should sync that directory' do
+          sync_to_s3.should_receive(:sync_dir).with('GOOD_DIR', 'REMOTE_DIR')
+          sync_to_s3.sync('GOOD_DIR', 'REMOTE_DIR')
+        end
+      end
+
       context 'when the local directory does not exist' do
         it 'should raise an error' do
           expect {

@@ -23,9 +23,15 @@ module Elasticity
       if !File.exist?(local) || !File.directory?(local)
         raise NoDirectoryError, "Directory '#{local}' does not exist or is not a directory"
       end
+
+      sync_dir(local, remote)
     end
 
     private
+
+    def sync_dir(local, remote)
+
+    end
 
     def s3
       @connection ||= Fog::Storage.new({
