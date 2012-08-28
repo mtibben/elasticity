@@ -9,6 +9,8 @@ require 'elasticity/support/conditional_raise'
 require 'elasticity/aws_request'
 require 'elasticity/emr'
 
+require 'elasticity/sync_to_s3'
+
 require 'elasticity/hadoop_bootstrap_action'
 require 'elasticity/job_flow_step'
 
