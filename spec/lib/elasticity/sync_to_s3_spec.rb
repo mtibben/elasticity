@@ -114,4 +114,16 @@ describe Elasticity::SyncToS3 do
 
   end
 
+  describe '#s3' do
+    let(:sync_to_s3) { Elasticity::SyncToS3.new('_', 'access', 'secret') }
+    it 'should connect to S3 using the specified credentials' do
+      Fog::Storage.should_receive(:new).with({
+        :provider => 'AWS',
+        :aws_access_key_id => 'access',
+        :aws_secret_access_key => 'secret'
+      }).and_return('GOOD_CONNECTION')
+      sync_to_s3.send(:s3).should == 'GOOD_CONNECTION'
+    end
+  end
+
 end
