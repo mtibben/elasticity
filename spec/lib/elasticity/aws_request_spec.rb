@@ -1,7 +1,7 @@
 describe Elasticity::AwsRequest do
 
   before do
-    Time.stub(:now).and_return(Time.at(1302461096))
+    Timecop.freeze(Time.at(1302461096))
   end
 
   subject do
