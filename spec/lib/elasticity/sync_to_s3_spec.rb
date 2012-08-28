@@ -5,7 +5,7 @@ describe Elasticity::SyncToS3 do
     describe 'basic assignment' do
 
       it 'should set the proper values' do
-        sync = Elasticity::SyncToS3.new('access', 'secret', 'bucket')
+        sync = Elasticity::SyncToS3.new('bucket', 'access', 'secret')
         sync.access_key.should == 'access'
         sync.secret_key.should == 'secret'
         sync.bucket_name.should == 'bucket'
@@ -15,7 +15,7 @@ describe Elasticity::SyncToS3 do
 
     context 'when access and secret keys are nil' do
 
-      let(:both_keys_nil) { Elasticity::SyncToS3.new(nil, nil, '_') }
+      let(:both_keys_nil) { Elasticity::SyncToS3.new('_', nil, nil) }
 
       before do
         ENV.stub(:[]).with('AWS_ACCESS_KEY_ID').and_return(access_key)
