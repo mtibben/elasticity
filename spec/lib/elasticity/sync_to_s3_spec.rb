@@ -63,4 +63,38 @@ describe Elasticity::SyncToS3 do
 
   end
 
+  describe '#sync' do
+
+    Fog.mock!
+
+    let(:sync_to_s3) { Elasticity::SyncToS3.new(bucket_name, '_', '_') }
+    let(:s3) do
+      Fog::Storage.new({:provider => 'AWS', :aws_access_key_id => '', :aws_secret_access_key => ''})
+    end
+
+    before do
+      sync_to_s3.stub(:s3).and_return(s3)
+    end
+
+    context 'when the bucket exists' do
+      let(:bucket_name) { 'GOOD_BUCKET' }
+      before do
+        s3.directories.create(:key => bucket_name)
+      end
+      it 'should not raise an error' do
+        sync_to_s3.sync
+      end
+    end
+
+    context 'when the bucket does not exist' do
+      let(:bucket_name) { 'BAD_BUCKET' }
+      it 'should raise an error' do
+        expect {
+          sync_to_s3.sync
+        }.to raise_error(Elasticity::NoBucketError, 'Bucket \'BAD_BUCKET\' does not exist')
+      end
+    end
+
+  end
+
 end

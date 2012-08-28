@@ -3,6 +3,7 @@ require 'time'
 
 require 'rest_client'
 require 'nokogiri'
+require 'fog'
 
 require 'elasticity/support/conditional_raise'
 
