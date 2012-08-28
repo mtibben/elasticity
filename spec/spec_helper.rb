@@ -3,6 +3,7 @@ require 'bundler/setup'
 require 'elasticity'
 
 require 'timecop'
+require 'fakefs/spec_helpers'
 
 ENV['RAILS_ENV'] ||= 'test'
 

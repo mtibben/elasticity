@@ -1,6 +1,7 @@
 module Elasticity
 
   class NoBucketError < StandardError; end
+  class NoDirectoryError < StandardError; end
 
   class SyncToS3
 
@@ -14,9 +15,13 @@ module Elasticity
       @bucket_name = bucket
     end
 
-    def sync
+    def sync(local, remote)
       if !s3.directories.map(&:key).include?(@bucket_name)
         raise NoBucketError, "Bucket '#@bucket_name' does not exist"
+      end
+
+      if !File.exist?(local) || !File.directory?(local)
+        raise NoDirectoryError, "Directory '#{local}' does not exist or is not a directory"
       end
     end
 
