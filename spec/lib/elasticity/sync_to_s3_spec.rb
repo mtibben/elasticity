@@ -16,6 +16,7 @@ describe Elasticity::SyncToS3 do
     context 'when access and secret keys are nil' do
 
       let(:both_keys_nil) { Elasticity::SyncToS3.new('_', nil, nil) }
+      let(:both_keys_missing) { Elasticity::SyncToS3.new('_') }
 
       before do
         ENV.stub(:[]).with('AWS_ACCESS_KEY_ID').and_return(access_key)
@@ -28,6 +29,9 @@ describe Elasticity::SyncToS3 do
         it 'should assign them to the keys' do
           both_keys_nil.access_key.should == 'ENV_ACCESS'
           both_keys_nil.secret_key.should == 'ENV_SECRET'
+
+          both_keys_missing.access_key.should == 'ENV_ACCESS'
+          both_keys_missing.secret_key.should == 'ENV_SECRET'
         end
       end
 
@@ -38,7 +42,7 @@ describe Elasticity::SyncToS3 do
           let(:secret_key) { '_' }
           it 'should raise an error' do
             expect {
-              both_keys_nil.access_key
+              both_keys_nil # Trigger instantiation
             }.to raise_error(Elasticity::MissingKeyError, 'Please provide an access key or set AWS_ACCESS_KEY_ID.')
           end
         end
@@ -48,7 +52,7 @@ describe Elasticity::SyncToS3 do
           let(:secret_key) { nil }
           it 'should raise an error' do
             expect {
-              both_keys_nil.secret_key
+              both_keys_nil # Trigger instantiation
             }.to raise_error(Elasticity::MissingKeyError, 'Please provide a secret key or set AWS_SECRET_ACCESS_KEY.')
           end
         end

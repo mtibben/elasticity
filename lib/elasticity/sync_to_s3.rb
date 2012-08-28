@@ -6,7 +6,7 @@ module Elasticity
     attr_reader :secret_key
     attr_reader :bucket_name
 
-    def initialize(bucket, access, secret)
+    def initialize(bucket, access=nil, secret=nil)
       @access_key = get_access_key(access)
       @secret_key = get_secret_key(secret)
       @bucket_name = bucket
