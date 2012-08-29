@@ -1,5 +1,8 @@
 describe Elasticity::SyncToS3 do
 
+  include FakeFS::SpecHelpers
+  Fog.mock!
+
   describe '#initialize' do
 
     describe 'basic assignment' do
@@ -65,9 +68,6 @@ describe Elasticity::SyncToS3 do
 
   describe '#sync' do
 
-    include FakeFS::SpecHelpers
-    Fog.mock!
-
     let(:sync_to_s3) { Elasticity::SyncToS3.new(bucket_name, '_', '_') }
     let(:s3) { Fog::Storage.new({:provider => 'AWS', :aws_access_key_id => '', :aws_secret_access_key => ''}) }
 
@@ -121,6 +121,56 @@ describe Elasticity::SyncToS3 do
         }.to raise_error(Elasticity::NoBucketError, "Bucket 'BAD_BUCKET' does not exist")
       end
     end
+
+  end
+
+  describe '#sync_dir' do
+
+    let(:bucket_name) { 'GOOD_BUCKET' }
+    let(:sync_to_s3) { Elasticity::SyncToS3.new(bucket_name, '_', '_') }
+    let(:s3) { Fog::Storage.new({:provider => 'AWS', :aws_access_key_id => '', :aws_secret_access_key => ''}) }
+
+    before do
+      s3.directories.create(:key => bucket_name)
+      sync_to_s3.stub(:s3).and_return(s3)
+
+      FileUtils.makedirs(File.join(%w(local_dir sub_dir_1)))
+      FileUtils.makedirs(File.join(%w(local_dir sub_dir_2)))
+
+      FileUtils.touch(File.join(%w(local_dir file_1)))
+      FileUtils.touch(File.join(%w(local_dir file_2)))
+      FileUtils.touch(File.join(%w(local_dir sub_dir_1 file_3)))
+      FileUtils.touch(File.join(%w(local_dir sub_dir_1 file_4)))
+      FileUtils.touch(File.join(%w(local_dir sub_dir_2 file_5)))
+      FileUtils.touch(File.join(%w(local_dir sub_dir_2 file_6)))
+    end
+
+    it 'should recursively sync all files and directories' do
+      sync_to_s3.send(:sync_dir, 'local_dir', 'remote_dir')
+
+      %w(
+        remote_dir/file_1
+        remote_dir/file_2
+        remote_dir/sub_dir_1/file_3
+        remote_dir/sub_dir_1/file_4
+        remote_dir/sub_dir_2/file_5
+        remote_dir/sub_dir_2/file_6
+      ).each do |key|
+        s3.directories[0].files.map(&:key).should include(key)
+      end
+    end
+
+  end
+
+  describe '#sync_file' do
+
+    xit 'should write the specified file into the remote directory'
+
+    xit 'should write the content of the specified file'
+
+    xit 'should write private files'
+
+    xit 'should not write identical content'
 
   end
 

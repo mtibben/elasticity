@@ -16,21 +16,34 @@ module Elasticity
     end
 
     def sync(local, remote)
-      if !s3.directories.map(&:key).include?(@bucket_name)
-        raise NoBucketError, "Bucket '#@bucket_name' does not exist"
-      end
-
-      if !File.exist?(local) || !File.directory?(local)
-        raise NoDirectoryError, "Directory '#{local}' does not exist or is not a directory"
-      end
-
+      raise_unless bucket, NoBucketError, "Bucket '#@bucket_name' does not exist"
+      raise_unless File.directory?(local), NoDirectoryError, "Directory '#{local}' does not exist or is not a directory"
       sync_dir(local, remote)
     end
 
     private
 
     def sync_dir(local, remote)
+      Dir.glob(File.join([local, '*'])).each do |entry|
+        if File.directory?(entry)
+          sync_dir(entry, [remote, File.basename(entry)].join('/'))
+        else
+          sync_file(entry, remote)
+        end
+      end
+    end
 
+    def sync_file(file_name, remote_dir)
+      bucket.files.create({
+        :key => [remote_dir, File.basename(file_name)].join('/'),
+        :body => File.open(file_name),
+        :public => false
+      })
+    end
+
+    def bucket
+      index = s3.directories.index { |d| d.key == @bucket_name }
+      @bucket ||= index ? s3.directories[index] : nil
     end
 
     def s3
