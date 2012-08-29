@@ -3,6 +3,15 @@ describe Elasticity::SyncToS3 do
   include FakeFS::SpecHelpers
   Fog.mock!
 
+  let(:bucket_name) { 'TEST_BUCKET' }
+  let(:sync_to_s3) { Elasticity::SyncToS3.new(bucket_name, '_', '_') }
+  let(:s3) { Fog::Storage.new({:provider => 'AWS', :aws_access_key_id => '', :aws_secret_access_key => ''}) }
+
+  before do
+    Fog::Mock.reset
+    sync_to_s3.stub(:s3).and_return(s3)
+  end
+
   describe '#initialize' do
 
     describe 'basic assignment' do
@@ -68,16 +77,8 @@ describe Elasticity::SyncToS3 do
 
   describe '#sync' do
 
-    let(:sync_to_s3) { Elasticity::SyncToS3.new(bucket_name, '_', '_') }
-    let(:s3) { Fog::Storage.new({:provider => 'AWS', :aws_access_key_id => '', :aws_secret_access_key => ''}) }
-
-    before do
-      sync_to_s3.stub(:s3).and_return(s3)
-    end
-
     context 'when the bucket exists' do
 
-      let(:bucket_name) { 'GOOD_BUCKET' }
       before do
         s3.directories.create(:key => bucket_name)
       end
@@ -126,13 +127,8 @@ describe Elasticity::SyncToS3 do
 
   describe '#sync_dir' do
 
-    let(:bucket_name) { 'GOOD_BUCKET' }
-    let(:sync_to_s3) { Elasticity::SyncToS3.new(bucket_name, '_', '_') }
-    let(:s3) { Fog::Storage.new({:provider => 'AWS', :aws_access_key_id => '', :aws_secret_access_key => ''}) }
-
     before do
       s3.directories.create(:key => bucket_name)
-      sync_to_s3.stub(:s3).and_return(s3)
 
       FileUtils.makedirs(File.join(%w(local_dir sub_dir_1)))
       FileUtils.makedirs(File.join(%w(local_dir sub_dir_2)))
@@ -175,14 +171,14 @@ describe Elasticity::SyncToS3 do
   end
 
   describe '#s3' do
-    let(:sync_to_s3) { Elasticity::SyncToS3.new('_', 'access', 'secret') }
+    let(:connection_test) { Elasticity::SyncToS3.new('_', 'access', 'secret') }
     it 'should connect to S3 using the specified credentials' do
       Fog::Storage.should_receive(:new).with({
         :provider => 'AWS',
         :aws_access_key_id => 'access',
         :aws_secret_access_key => 'secret'
       }).and_return('GOOD_CONNECTION')
-      sync_to_s3.send(:s3).should == 'GOOD_CONNECTION'
+      connection_test.send(:s3).should == 'GOOD_CONNECTION'
     end
   end
 
