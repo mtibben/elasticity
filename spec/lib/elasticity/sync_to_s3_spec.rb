@@ -160,13 +160,33 @@ describe Elasticity::SyncToS3 do
 
   describe '#sync_file' do
 
-    xit 'should write the specified file into the remote directory'
+    let(:local_dir) { '/tmp' }
+    let(:file_name) { 'test.out' }
+    let(:full_path) { File.join([local_dir, file_name]) }
+    let(:remote_dir) { '/job/assets' }
+    let(:remote_path) { "/job/assets/#{file_name}"}
+    let(:file_data) { 'Some test content' }
 
-    xit 'should write the content of the specified file'
+    before do
+      s3.directories.create(:key => bucket_name)
+      FileUtils.makedirs(local_dir)
+      File.open(full_path, 'w') {|f| f.write(file_data) }
+      sync_to_s3.send(:sync_file, full_path, remote_dir)
+    end
 
-    xit 'should write private files'
+    it 'should write the specified file into the remote directory' do
+      s3.directories[0].files.head(remote_path).should_not be_nil
+    end
 
-    xit 'should not write identical content'
+    it 'should write the contents of the file' do
+      s3.directories[0].files.head(remote_path).body.should == file_data
+    end
+
+    it 'should write the remote file without public access' do
+      s3.directories[0].files.head(remote_path).public_url.should be_nil
+    end
+
+    it 'should not write identical content'
 
   end
 
