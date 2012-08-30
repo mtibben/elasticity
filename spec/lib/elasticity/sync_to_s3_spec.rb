@@ -163,34 +163,64 @@ describe Elasticity::SyncToS3 do
     let(:local_dir) { '/tmp' }
     let(:file_name) { 'test.out' }
     let(:full_path) { File.join([local_dir, file_name]) }
-    let(:remote_dir) { '/job/assets' }
-    let(:remote_path) { "/job/assets/#{file_name}"}
+    let(:remote_dir) { 'job/assets' }
+    let(:remote_path) { "#{remote_dir}/#{file_name}"}
     let(:file_data) { 'Some test content' }
 
     before do
       s3.directories.create(:key => bucket_name)
       FileUtils.makedirs(local_dir)
       File.open(full_path, 'w') {|f| f.write(file_data) }
-      sync_to_s3.send(:sync_file, full_path, remote_dir)
     end
 
     it 'should write the specified file into the remote directory' do
+      sync_to_s3.send(:sync_file, full_path, remote_dir)
       s3.directories[0].files.head(remote_path).should_not be_nil
     end
 
     it 'should write the contents of the file' do
+      sync_to_s3.send(:sync_file, full_path, remote_dir)
       s3.directories[0].files.head(remote_path).body.should == file_data
     end
 
     it 'should write the remote file without public access' do
+      sync_to_s3.send(:sync_file, full_path, remote_dir)
       s3.directories[0].files.head(remote_path).public_url.should be_nil
     end
 
     it 'should not write identical content' do
+      sync_to_s3.send(:sync_file, full_path, remote_dir)
       last_modified = s3.directories[0].files.head(remote_path).last_modified
       Timecop.travel(Time.now + 60)
       sync_to_s3.send(:sync_file, full_path, remote_dir)
       s3.directories[0].files.head(remote_path).last_modified.should == last_modified
+    end
+
+    context 'when remote dir is a corner case value' do
+      before do
+        sync_to_s3.send(:sync_file, full_path, remote_dir)
+      end
+
+      context 'when remote dir is empty' do
+        let(:remote_dir) {''}
+        it 'should place files in the root without a bunk empty folder name' do
+          s3.directories[0].files.head(file_name).should_not be_nil
+        end
+      end
+
+      context 'when remote dir is /' do
+        let(:remote_dir) {'/'}
+        it 'should place files in the root without a bunk empty folder name' do
+          s3.directories[0].files.head(file_name).should_not be_nil
+        end
+      end
+
+      context 'when remote dir starts with a /' do
+        let(:remote_dir) {'/starts_with_slash'}
+        it 'should place files in the root without a bunk empty folder name' do
+          s3.directories[0].files.head('starts_with_slash/test.out').should_not be_nil
+        end
+      end
     end
 
   end
