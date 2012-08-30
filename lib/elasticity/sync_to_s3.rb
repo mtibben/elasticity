@@ -34,6 +34,10 @@ module Elasticity
     end
 
     def sync_file(file_name, remote_dir)
+      remote_path = [remote_dir, File.basename(file_name)].join('/')
+      metadata = bucket.files.head(remote_path)
+      return if metadata && metadata.etag == Digest::MD5.file(file_name).to_s
+
       bucket.files.create({
         :key => [remote_dir, File.basename(file_name)].join('/'),
         :body => File.open(file_name),
